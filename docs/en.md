@@ -121,23 +121,28 @@ Add the **AirPlay speakers** widget:
 - Gladys streams through its own AirPlay session: a playback interrupts what
   the speaker was playing (Apple Music, Spotify…), which does not resume
   afterwards.
-- The integration runs in a Docker container. Some AirPlay 2 receivers need
-  to reach the sender back for their clock synchronization; if a speaker is
-  found and tested but stays silent, try **AirPlay 1 (RAOP)** in the
-  configuration.
+- **HomePod and Apple TV** only play AirPlay 2 (since their OS 27 they
+  accept an AirPlay 1 session and stay silent), and only with a **PTP
+  clock** served by Gladys on UDP ports 319 and 320. The integration runs in
+  a Docker container on its own network: if the speaker cannot reach that
+  clock, it accepts the session and stays silent, or the integration reports
+  that the PTP clock cannot be served. Third-party AirPlay 2 speakers fall
+  back to an NTP clock, and AirPlay 1 receivers need none.
+- The **AirPlay password** only applies to AirPlay 2 speakers.
 - An Apple TV or HomePod set to "Only people sharing this home" refuses
   Gladys (see the requirements).
 
 ## Troubleshooting
 
-| Symptom                                | What to do                                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| No speaker in the Discovery tab        | Check that the speaker is on and on the same network as Gladys, then reopen the tab.        |
-| "The speaker does not answer"          | Wake the speaker up (play something from your phone), check its IP address has not changed. |
-| "The speaker asks for a password"      | Enter the AirPlay password in the configuration.                                            |
-| "The speaker refused the pairing"      | Home app > Home settings > Speakers & TV > allow everyone on the same network.              |
-| The notification plays without a voice | Check the voice selected in Gladys (Artificial intelligence settings) and its subscription. |
-| The test chime plays but stays silent  | Set the protocol to **AirPlay 1 (RAOP)**, or **AirPlay 2**, and test again.                 |
+| Symptom                                | What to do                                                                                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| No speaker in the Discovery tab        | Check that the speaker is on and on the same network as Gladys, then reopen the tab.                                                        |
+| "The speaker does not answer"          | Wake the speaker up (play something from your phone), check its IP address has not changed.                                                 |
+| "The speaker asks for a password"      | Enter the AirPlay password in the configuration.                                                                                            |
+| "The speaker refused the pairing"      | Home app > Home settings > Speakers & TV > allow everyone on the same network.                                                              |
+| The notification plays without a voice | Check the voice selected in Gladys (Artificial intelligence settings) and its subscription.                                                 |
+| The test chime plays but stays silent  | Third-party speaker: set the protocol to **AirPlay 1 (RAOP)**, or **AirPlay 2**, and test again. HomePod and Apple TV: see the limitations. |
+| "needs a PTP clock"                    | The UDP ports 319/320 are taken or forbidden on the Gladys server: see the limitations.                                                     |
 
 The integration logs each playback (speaker, address, protocol, reason of a
 failure) in its **Logs** tab.

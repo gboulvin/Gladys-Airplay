@@ -3,8 +3,8 @@
 //
 // A source is either an audio URL (decoded to PCM by ffmpeg, like the native
 // Gladys service did) or a PCM buffer synthesized in memory (the chimes).
-// Both are fed to the AirPlay sender at real-time pace: the sender keeps a
-// ~2 s buffer and starts the stream once it is half full.
+// Both are fed to the AirPlay sender (src/airplay.js) at real-time pace: the
+// receiver plays each packet a fixed lead after it is sent.
 //
 // Lifecycle of `play()`:
 //   - `started` resolves when the speaker accepted the session and the audio
@@ -15,29 +15,24 @@
 // -----------------------------------------------------------------------------
 
 import { spawn as nodeSpawn } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { createLogger } from '@gladysassistant/integration-sdk';
+import { createSenderFactory } from './airplay.js';
 import { BYTES_PER_SECOND } from './sounds.js';
 
 const defaultLogger = createLogger({ name: 'player' });
 
-// The ESM build of the sender library is broken (CommonJS code shipped as a
-// module): load its CommonJS build.
-const require = createRequire(import.meta.url);
-const { start: startAirplaySender } = require('@lox-audioserver/node-airplay-sender');
-
 // No answer from the speaker within this delay: unreachable.
 export const CONNECT_TIMEOUT_MS = 10_000;
-// Once the source is exhausted, the receiver still plays what it buffered
-// (sender buffer + receiver latency): the native service waited 7 s.
-export const DRAIN_MS = 7_000;
+// Once the source is exhausted, the receiver still plays what it was sent
+// ahead (the 2 s lead of AirPlay 2, the read-ahead of RAOP): the session is
+// torn down after it.
+export const DRAIN_MS = 4_000;
 // Pace of the in-memory sources.
 export const PCM_CHUNK_MS = 100;
 const PCM_CHUNK_BYTES = (BYTES_PER_SECOND * PCM_CHUNK_MS) / 1000;
-// The sender only plays full packets of a buffer at least half full: the
-// tail of a stream would stay stuck in it. A padding of silence pushes it
-// out.
-export const TAIL_PADDING = Buffer.alloc(Math.round(BYTES_PER_SECOND * 1.5));
+// A second of silence after the source: the last partial packet is flushed
+// and the receiver's fade-out never eats the end of the sound.
+export const TAIL_PADDING = Buffer.alloc(BYTES_PER_SECOND);
 
 // Only remote audio: ffmpeg also reads local files and a dozen other
 // protocols, which a URL typed in a scene must never reach.
@@ -114,7 +109,7 @@ export function ffmpegArgs(url) {
  * @returns {object} The engine: play, stop, setVolume, isPlaying, stopAll.
  */
 export function createPlaybackManager({
-  startSender = startAirplaySender,
+  startSender = createSenderFactory(),
   spawn = nodeSpawn,
   onStateChange = () => {},
   logger = defaultLogger,
@@ -122,7 +117,8 @@ export function createPlaybackManager({
   const sessions = new Map();
 
   /**
-   * @param {object} target - `{ externalId, name, address, port, airplay2 }`.
+   * @param {object} target - `{ externalId, name, address, port, airplay2,
+   * model, features, encryptionTypes }`.
    * @param {object} source - `{ url }` or `{ pcm, title }`.
    * @param {object} options - `{ volume, title, maxDurationSeconds, senderName, password }`.
    * @returns {{ started: Promise<void>, finished: Promise<object> }} Session promises.
@@ -303,6 +299,15 @@ export function createPlaybackManager({
           case 'ready':
             onReady();
             break;
+          case 'unreachable':
+            finish(
+              'error',
+              new PlaybackError('UNREACHABLE', event.detail?.desc ?? 'The speaker does not answer'),
+            );
+            break;
+          case 'ptp_unavailable':
+            finish('error', new PlaybackError('PTP_UNAVAILABLE', event.detail?.desc ?? 'No PTP'));
+            break;
           case 'need_password':
             finish(
               'error',
@@ -351,14 +356,13 @@ export function createPlaybackManager({
           host: target.address,
           port: target.port,
           airplay2: target.airplay2,
+          model: target.model,
+          features: target.features,
+          encryptionTypes: target.encryptionTypes,
           volume: options.volume,
           name: options.senderName,
+          title: session.title,
           password: options.password || null,
-          log: (level, text) => {
-            if (level === 'error' || level === 'warn') {
-              logger.debug(`[airplay ${target.address}] ${text}`);
-            }
-          },
         },
         onEvent,
       );

@@ -22,14 +22,14 @@ User documentation: [English](docs/en.md) · [Français](docs/fr.md) ·
 
 ## Compared to the built-in AirPlay service
 
-| Built-in service (Gladys core)           | This integration                                                                 |
-| ---------------------------------------- | -------------------------------------------------------------------------------- |
-| `play_notification` only                 | `play_notification`, `volume`, `playback_state`, `title` (now-playing card)      |
-| Volume of the scene action, 70 otherwise | Volume stored per speaker, configurable default, applied live during a playback  |
-| Speaker reached by its name, rescanned   | Speaker keyed by its MAC address, IP kept in the device params and re-scanned    |
-| AirPlay 2 forced, port 5000              | Protocol and port read from the mDNS records (AirPlay 2 bit 38), overridable     |
-| No feedback on failures                  | Reasons in four languages (unreachable, password, pairing, unreadable URL…)      |
-| —                                        | Chimes, audio URLs, stop, offline/online triggers, dashboard widget, test button |
+| Built-in service (Gladys core)           | This integration                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
+| `play_notification` only                 | `play_notification`, `volume`, `playback_state`, `title` (now-playing card)       |
+| Volume of the scene action, 70 otherwise | Volume stored per speaker, configurable default, applied live during a playback   |
+| Speaker reached by its name, rescanned   | Speaker keyed by its MAC address, IP kept in the device params and re-scanned     |
+| AirPlay 2 forced, port 5000              | Lane per speaker from the mDNS records: AirPlay 1 (RAOP), AirPlay 2 on PTP or NTP |
+| No feedback on failures                  | Reasons in four languages (unreachable, password, pairing, unreadable URL…)       |
+| —                                        | Chimes, audio URLs, stop, offline/online triggers, dashboard widget, test button  |
 
 The external ids differ (`ext:<selector>:speaker:<mac>` instead of
 `airplay:<name>`): the user re-creates the speakers from the Discovery tab and
@@ -43,22 +43,36 @@ re-selects them in the scenes. The documentation explains it.
    raw records (`scanNetwork('mdns')`). [`src/discovery.js`](src/discovery.js)
    merges the `_airplay._tcp` and `_raop._tcp` records of a speaker on its MAC
    address, reads the AirPlay 2 feature bit and builds the devices.
-2. **Playback.** [`src/player.js`](src/player.js) opens one AirPlay session per
-   speaker with
-   [`@lox-audioserver/node-airplay-sender`](https://github.com/lox-audioserver/node-airplay-sender)
-   (the library the native service uses). An audio URL is decoded to PCM by
-   `ffmpeg` at real-time pace, restricted to `http`/`https`; a chime is
-   synthesized in memory ([`src/sounds.js`](src/sounds.js)). A new playback
-   on a speaker replaces the current one; a maximum duration cuts endless
-   streams.
-3. **Volume.** AirPlay cannot read the volume of an idle speaker: the volume
+2. **Playback.** [`src/player.js`](src/player.js) runs one playback per
+   speaker: an audio URL is decoded to PCM by `ffmpeg` at real-time pace,
+   restricted to `http`/`https`; a chime is synthesized in memory
+   ([`src/sounds.js`](src/sounds.js)). A new playback on a speaker replaces
+   the current one; a maximum duration cuts endless streams.
+3. **AirPlay session.** [`src/airplay.js`](src/airplay.js) assembles the
+   pieces of
+   [`@sonn-audio/node-airplay`](https://github.com/sonn-audio/node-airplay)
+   (Apache-2.0, no dependencies) into one session per playback and picks the
+   lane from the mDNS records:
+   - **AirPlay 1 (RAOP)** for receivers without AirPlay 2, with the MFi
+     `/auth-setup` exchange when their `et` asks for it;
+   - **AirPlay 2 over PTP** for HomePod and Apple TV, which render nothing
+     else: the process serves one PTP grandmaster (UDP 319/320) shared by
+     every session. When it cannot bind those ports, an Apple receiver gets a
+     `PTP_UNAVAILABLE` error instead of a silent session;
+   - **AirPlay 2 over NTP** for the other receivers without PTP, for those
+     whose SETUP reply asks for NTP (the session is re-established on that
+     lane), and as the fallback when PTP cannot be served.
+
+   PCM is cut into 352-frame packets; the session ends with a `TEARDOWN`.
+
+4. **Volume.** AirPlay cannot read the volume of an idle speaker: the volume
    is the integration's own state, stored in `/data/volumes.json` and
    confirmed to Gladys with `publishState`.
-4. **Reachability.** Every `availability_interval` seconds, the integration
+5. **Reachability.** Every `availability_interval` seconds, the integration
    re-scans, then opens a TCP connection to each speaker
    ([`src/availability.js`](src/availability.js)). It publishes the transport
    badge, and fires `speaker_offline` / `speaker_online` on transitions only.
-5. **Voice notifications.** The core turns the text into a speech URL (Gladys
+6. **Voice notifications.** The core turns the text into a speech URL (Gladys
    Plus or a local TTS integration) and sends it to the `play_notification`
    feature. The set-value ack is due in 5 s: the URL and the speaker are
    checked synchronously, the stream runs in the background.
@@ -84,7 +98,8 @@ npm run format:check  # Prettier
 | `src/app.js`               | SDK wiring: discovery, set value, actions, scenes, widget, lifecycle.          |
 | `src/service.js`           | Speakers, playback, volumes and reachability shared by every handler.          |
 | `src/discovery.js`         | mDNS records → speakers → Gladys devices.                                      |
-| `src/player.js`            | AirPlay sessions: ffmpeg or in-memory source, timeouts, errors.                |
+| `src/player.js`            | Playbacks: ffmpeg or in-memory source, pacing, timeouts, errors.               |
+| `src/airplay.js`           | AirPlay sender: lane choice (RAOP, AirPlay 2 PTP/NTP), packets, teardown.      |
 | `src/availability.js`      | TCP reachability probe, transport badges, offline/online triggers.             |
 | `src/scenes.js`            | Scene actions `play_audio`, `play_chime`, `stop_playback`.                     |
 | `src/widgets.js`           | Dashboard widget `airplay_speakers`.                                           |
@@ -123,15 +138,22 @@ the repository so the store indexes it, and make the GHCR package public.
   external integration, not its `volume`: the notification plays at the
   speaker's `volume` feature, which a scene sets with a **Control a device**
   action beforehand.
-- The container sits behind the Docker bridge NAT. RTSP and the audio stream
-  are unicast from the container and pass; the clock synchronization some
-  AirPlay 2 receivers open back towards the sender may not. Forcing AirPlay 1
-  (RAOP) in the configuration is the fallback.
+- **HomePod and Apple TV behind the Docker bridge.** Gladys runs every
+  integration on a bridge network (no host network mode, all capabilities
+  dropped). Apple receivers only render AirPlay 2 timed by PTP, and they
+  query the grandmaster at the address the session SETUP announces: the
+  container's own address, which the LAN cannot reach. They may accept the
+  session and stay silent. RAOP and NTP receivers are more forgiving (they
+  answer the sender at the address they see), without guarantee. Binding UDP
+  319/320 as the unprivileged `node` user relies on Docker's default
+  `net.ipv4.ip_unprivileged_port_start=0` in the container namespace. A
+  network option for such integrations in the Gladys core is the real fix.
+- The AirPlay password only reaches AirPlay 2 receivers: the RAOP lane of
+  the library has no password support.
 - A speaker restricted to "people sharing this home" refuses the session (no
   HomeKit pairing).
 
 ## License
 
-[AGPL-3.0-or-later](LICENSE). The AirPlay sender library the integration
-bundles in its Docker image is published under the AGPL-3.0, which this
-license keeps compatible.
+[Apache-2.0](LICENSE), like the official template and the AirPlay library it
+uses.

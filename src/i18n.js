@@ -79,6 +79,12 @@ export const ERROR_REASONS = {
     de: 'der Lautsprecher verlangt ein Passwort: Tragen Sie das AirPlay-Passwort in der Konfiguration ein.',
     es: 'el altavoz pide una contraseña: indique la contraseña AirPlay en la configuración.',
   },
+  PTP_UNAVAILABLE: {
+    en: 'this Apple speaker needs a PTP clock (UDP ports 319/320) the integration cannot serve here.',
+    fr: "cette enceinte Apple exige une horloge PTP (ports UDP 319/320) que l'intégration ne peut pas servir ici.",
+    de: 'dieser Apple-Lautsprecher braucht eine PTP-Uhr (UDP-Ports 319/320), die die Integration hier nicht bereitstellen kann.',
+    es: 'este altavoz de Apple necesita un reloj PTP (puertos UDP 319/320) que la integración no puede ofrecer aquí.',
+  },
   PAIRING_FAILED: {
     en: 'the speaker refused the pairing (check its access settings in the Home app).',
     fr: "l'enceinte a refusé l'appairage (vérifiez ses réglages d'accès dans l'app Maison).",

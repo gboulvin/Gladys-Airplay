@@ -98,7 +98,7 @@ export const MDNS_RESULTS = [
     host: 'Kitchen-HomePod.local',
     addresses: ['192.168.1.20'],
     port: 7000,
-    txt: ['am=AudioAccessory5,1', 'tp=UDP'],
+    txt: ['am=AudioAccessory5,1', 'tp=UDP', 'et=0,3,5'],
   },
   {
     // An AirPort Express of the first generation: RAOP only.
@@ -106,6 +106,6 @@ export const MDNS_RESULTS = [
     host: 'Office.local',
     addresses: ['192.168.1.30'],
     port: 5000,
-    txt: ['am=AirPort4,107', 'pw=false'],
+    txt: ['am=AirPort4,107', 'pw=false', 'et=0,4'],
   },
 ];

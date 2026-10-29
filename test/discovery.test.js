@@ -41,12 +41,16 @@ test('the _airplay and _raop records of one speaker are merged on its MAC', () =
     raopPort: 7000,
     airplay2: true,
     model: 'AudioAccessory5,1',
+    features: '0x4A7FDFD5,0xBC177FDE',
+    encryptionTypes: '0,3,5',
     passwordRequired: false,
   });
   assert.equal(office.id, OFFICE_MAC);
   assert.equal(office.name, 'Office');
   assert.equal(office.airplay2, false);
   assert.equal(office.raopPort, 5000);
+  // The MFi exchange the RAOP lane runs when `et` holds a 4.
+  assert.equal(office.encryptionTypes, '0,4');
 });
 
 test('records without an IPv4 address or of another service are ignored', () => {
@@ -97,6 +101,15 @@ test('Gladys accepts the discovered devices', async () => {
   assert.equal(kitchen.should_poll, false);
 });
 
+test('a speaker created as AirPlay 1 is recognized as AirPlay 2 from its stored features', () => {
+  const gladys = createFakeGladys();
+  const [kitchen] = parseScanResults(MDNS_RESULTS);
+  const device = buildDevice(gladys, kitchen, normalizeConfig({ protocol: 'airplay1' }));
+  const speaker = speakerFromDevice(device, KITCHEN_MAC);
+  assert.equal(speaker.airplay2, true);
+  assert.equal(speaker.model, 'AudioAccessory5,1');
+});
+
 test('a created device is reachable from its stored params', () => {
   const gladys = createFakeGladys();
   const [, office] = parseScanResults(MDNS_RESULTS);
@@ -105,5 +118,6 @@ test('a created device is reachable from its stored params', () => {
   assert.equal(speaker.address, '192.168.1.30');
   assert.deepEqual(connectionOf(speaker, 'auto'), { airplay2: false, port: 5000 });
   assert.equal(speaker.name, 'Office speaker');
+  assert.equal(speaker.encryptionTypes, '0,4');
   assert.equal(speakerFromDevice({ name: 'x', params: [] }, OFFICE_MAC), null);
 });

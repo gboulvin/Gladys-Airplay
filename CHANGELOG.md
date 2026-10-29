@@ -16,6 +16,10 @@ the notes of the version's GitHub Release.
   `_raop._tcp`), one device per speaker keyed by its MAC address.
 - Voice notifications on AirPlay and AirPlay 2 speakers through the core
   **Play a notification** scene action, replacing the built-in AirPlay service.
+- AirPlay sessions with `@sonn-audio/node-airplay`: AirPlay 1 (RAOP, with the
+  MFi exchange), AirPlay 2 timed by PTP for HomePod and Apple TV, AirPlay 2
+  timed by NTP for the other receivers, chosen per speaker from its mDNS
+  records.
 - A volume per speaker, stored by the integration and applied live during a
   playback, with a configurable default volume.
 - Playback state and "now playing" title of each speaker.

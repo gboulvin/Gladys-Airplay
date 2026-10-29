@@ -129,23 +129,28 @@ Añada el widget **Altavoces AirPlay**:
 - Gladys emite en su propia sesión AirPlay: una reproducción interrumpe lo
   que sonaba en el altavoz (Apple Music, Spotify…), que no se reanuda
   después.
-- La integración se ejecuta en un contenedor Docker. Algunos receptores
-  AirPlay 2 necesitan contactar de vuelta con el emisor para sincronizar su
-  reloj: si un altavoz se encuentra y se prueba pero no suena, pruebe
-  **AirPlay 1 (RAOP)** en la configuración.
+- **HomePod y Apple TV** solo reproducen AirPlay 2 (desde su OS 27 aceptan
+  una sesión AirPlay 1 pero no suenan), y solo con un **reloj PTP** que
+  Gladys sirve en los puertos UDP 319 y 320. La integración se ejecuta en un
+  contenedor Docker en su propia red: si el altavoz no puede alcanzar ese
+  reloj, acepta la sesión y no suena, o la integración indica que el reloj
+  PTP no se puede servir. Los altavoces AirPlay 2 de otras marcas recurren a
+  un reloj NTP, y los receptores AirPlay 1 no lo necesitan.
+- La **contraseña AirPlay** solo se aplica a los altavoces AirPlay 2.
 - Un Apple TV o HomePod configurado en «Solo las personas que comparten esta
   casa» rechaza a Gladys (vea los requisitos).
 
 ## Solución de problemas
 
-| Síntoma                                     | Qué hacer                                                                                          |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Ningún altavoz en la pestaña Descubrimiento | Compruebe que el altavoz está encendido y en la misma red que Gladys, y vuelva a abrir la pestaña. |
-| «El altavoz no responde»                    | Despierte el altavoz (reproduzca algo desde su teléfono), compruebe que su IP no ha cambiado.      |
-| «El altavoz pide una contraseña»            | Indique la contraseña AirPlay en la configuración.                                                 |
-| «El altavoz rechazó el emparejamiento»      | App Casa > Ajustes de la casa > Altavoces y TV > permita a todos en la misma red.                  |
-| La notificación suena sin voz               | Compruebe la voz elegida en Gladys (ajustes de Inteligencia artificial) y su suscripción.          |
-| El timbre de prueba no suena                | Cambie el protocolo a **AirPlay 1 (RAOP)** o **AirPlay 2** y vuelva a probar.                      |
+| Síntoma                                     | Qué hacer                                                                                                                                      |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ningún altavoz en la pestaña Descubrimiento | Compruebe que el altavoz está encendido y en la misma red que Gladys, y vuelva a abrir la pestaña.                                             |
+| «El altavoz no responde»                    | Despierte el altavoz (reproduzca algo desde su teléfono), compruebe que su IP no ha cambiado.                                                  |
+| «El altavoz pide una contraseña»            | Indique la contraseña AirPlay en la configuración.                                                                                             |
+| «El altavoz rechazó el emparejamiento»      | App Casa > Ajustes de la casa > Altavoces y TV > permita a todos en la misma red.                                                              |
+| La notificación suena sin voz               | Compruebe la voz elegida en Gladys (ajustes de Inteligencia artificial) y su suscripción.                                                      |
+| El timbre de prueba no suena                | Altavoz de otra marca: cambie el protocolo a **AirPlay 1 (RAOP)** o **AirPlay 2** y vuelva a probar. HomePod y Apple TV: vea las limitaciones. |
+| «necesita un reloj PTP»                     | Los puertos UDP 319/320 están ocupados o prohibidos en el servidor Gladys: vea las limitaciones.                                               |
 
 La integración registra cada reproducción (altavoz, dirección, protocolo,
 causa de un fallo) en su pestaña **Registros**.

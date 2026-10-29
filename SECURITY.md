@@ -36,11 +36,13 @@ including:
   of the container nor open another protocol;
 - the AirPlay password: stored by Gladys as a `secret` field, never logged and
   never written under `/data`;
-- what the integration writes under `/data` (the volume of each speaker only).
+- what the integration writes under `/data` (the volume of each speaker only);
+- the UDP ports the integration listens on: 319/320 (PTP clock, AirPlay 2)
+  and ephemeral ports for the audio, control and NTP timing of a session.
 
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
 the AirPlay speakers and their firmware, and the third-party libraries
-(report those to their maintainers: the AirPlay sender library at
-[lox-audioserver/node-airplay-sender](https://github.com/lox-audioserver/node-airplay-sender),
+(report those to their maintainers: the AirPlay library at
+[sonn-audio/node-airplay](https://github.com/sonn-audio/node-airplay),
 ffmpeg at [ffmpeg.org](https://ffmpeg.org/security.html)).
