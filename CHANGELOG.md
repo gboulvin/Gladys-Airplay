@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-29
+
 ### Added
 
 - AirPlay speaker discovery through the Gladys core (mDNS `_airplay._tcp` and
@@ -50,4 +52,5 @@ the notes of the version's GitHub Release.
   test or scene reports the failure. Any other unexpected error still restarts
   the integration, as do repeated library failures (more than 5 in a minute).
 
-[Unreleased]: https://github.com/gboulvin/Gladys-Airplay/commits/main
+[Unreleased]: https://github.com/gboulvin/Gladys-Airplay/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/gboulvin/Gladys-Airplay/releases/tag/v2.0.0
