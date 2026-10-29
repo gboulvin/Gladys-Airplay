@@ -1,0 +1,548 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "AirPlay",
+  "description": {
+    "en": "Voice notifications, chimes and audio on your AirPlay speakers (HomePod, Apple TV…).",
+    "fr": "Notifications vocales, carillons et audio sur vos enceintes AirPlay (HomePod, Apple TV…).",
+    "de": "Sprachansagen, Gongs und Audio auf Ihren AirPlay-Lautsprechern (HomePod, Apple TV…).",
+    "es": "Notificaciones de voz, timbres y audio en sus altavoces AirPlay (HomePod, Apple TV…)."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/gboulvin/gladys-airplay:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/gboulvin/Gladys-Airplay/main/cover.png",
+  "categories": ["multimedia", "notifications"],
+  "keywords": [
+    "AirPlay 2",
+    "HomePod",
+    "Apple TV",
+    "AirPort Express",
+    "RAOP",
+    "speaker",
+    "enceinte",
+    "Lautsprecher",
+    "altavoz",
+    "TTS"
+  ],
+  "transports": ["local"],
+  "network_discovery": [
+    { "type": "mdns", "service": "_airplay._tcp" },
+    { "type": "mdns", "service": "_raop._tcp" }
+  ],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Before you start",
+        "fr": "Avant de commencer",
+        "de": "Bevor Sie beginnen",
+        "es": "Antes de empezar"
+      },
+      "description": {
+        "en": "Everything stays on your local network: no account, no cloud. Your speakers must be on the same network as Gladys and allow AirPlay from \"Everyone on the same network\" (Home app > Home settings > Speakers & TV). Open the Discovery tab to add them. Voice notifications use the text-to-speech voice of Gladys (Gladys Plus by default).",
+        "fr": "Tout reste sur votre réseau local : pas de compte, pas de cloud. Vos enceintes doivent être sur le même réseau que Gladys et autoriser AirPlay à « Tout le monde sur le même réseau » (app Maison > Réglages de la maison > Enceintes et TV). Ajoutez-les depuis l'onglet Découverte. Les notifications vocales utilisent la voix de synthèse de Gladys (Gladys Plus par défaut).",
+        "de": "Alles bleibt in Ihrem lokalen Netzwerk: kein Konto, keine Cloud. Ihre Lautsprecher müssen im selben Netzwerk wie Gladys sein und AirPlay für „Alle im selben Netzwerk“ erlauben (Home-App > Zuhause-Einstellungen > Lautsprecher & TV). Fügen Sie sie im Tab Erkennung hinzu. Sprachansagen nutzen die Sprachausgabe von Gladys (standardmäßig Gladys Plus).",
+        "es": "Todo se queda en su red local: sin cuenta ni nube. Sus altavoces deben estar en la misma red que Gladys y permitir AirPlay a «Todos en la misma red» (app Casa > Ajustes de la casa > Altavoces y TV). Añádalos desde la pestaña Descubrimiento. Las notificaciones de voz usan la voz sintetizada de Gladys (Gladys Plus por defecto)."
+      },
+      "links": [
+        {
+          "url": "https://support.apple.com/guide/airplay/welcome/web",
+          "label": {
+            "en": "AirPlay user guide (Apple)",
+            "fr": "Guide d'utilisation AirPlay (Apple)",
+            "de": "AirPlay-Benutzerhandbuch (Apple)",
+            "es": "Manual de uso de AirPlay (Apple)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "default_volume",
+      "type": "number",
+      "label": {
+        "en": "Default volume (%)",
+        "fr": "Volume par défaut (%)",
+        "de": "Standardlautstärke (%)",
+        "es": "Volumen por defecto (%)"
+      },
+      "description": {
+        "en": "Volume of a speaker whose volume was never set in Gladys.",
+        "fr": "Volume d'une enceinte dont le volume n'a jamais été réglé dans Gladys.",
+        "de": "Lautstärke eines Lautsprechers, dessen Lautstärke nie in Gladys eingestellt wurde.",
+        "es": "Volumen de un altavoz cuyo volumen nunca se ajustó en Gladys."
+      },
+      "placeholder": { "en": "e.g. 70", "fr": "ex. 70", "de": "z. B. 70", "es": "p. ej. 70" },
+      "required": false,
+      "default": 70,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "max_duration",
+      "type": "number",
+      "label": {
+        "en": "Maximum duration (s)",
+        "fr": "Durée maximale (s)",
+        "de": "Maximale Dauer (s)",
+        "es": "Duración máxima (s)"
+      },
+      "description": {
+        "en": "Any playback is stopped after this time, in seconds.",
+        "fr": "Toute lecture est arrêtée après cette durée, en secondes.",
+        "de": "Jede Wiedergabe wird nach dieser Zeit (in Sekunden) gestoppt.",
+        "es": "Toda reproducción se detiene tras este tiempo, en segundos."
+      },
+      "required": false,
+      "default": 300,
+      "min": 10,
+      "max": 1800
+    },
+    {
+      "key": "availability_interval",
+      "type": "number",
+      "label": {
+        "en": "Availability check (s)",
+        "fr": "Vérification de disponibilité (s)",
+        "de": "Erreichbarkeitsprüfung (s)",
+        "es": "Comprobación de disponibilidad (s)"
+      },
+      "description": {
+        "en": "How often the speakers are checked, in seconds. Drives the offline/online scene triggers.",
+        "fr": "Fréquence de vérification des enceintes, en secondes. Alimente les déclencheurs de scène hors ligne/en ligne.",
+        "de": "Wie oft die Lautsprecher geprüft werden, in Sekunden. Steuert die Szenen-Auslöser offline/online.",
+        "es": "Frecuencia de comprobación de los altavoces, en segundos. Alimenta los disparadores de escena desconectado/conectado."
+      },
+      "required": false,
+      "default": 300,
+      "min": 60,
+      "max": 3600
+    },
+    {
+      "key": "protocol",
+      "type": "select",
+      "label": {
+        "en": "AirPlay protocol",
+        "fr": "Protocole AirPlay",
+        "de": "AirPlay-Protokoll",
+        "es": "Protocolo AirPlay"
+      },
+      "description": {
+        "en": "Automatic reads what each speaker announces. Force AirPlay 1 for an older receiver that stays silent.",
+        "fr": "Automatique lit ce que chaque enceinte annonce. Forcez AirPlay 1 pour un ancien récepteur qui reste muet.",
+        "de": "Automatisch liest, was jeder Lautsprecher ankündigt. Erzwingen Sie AirPlay 1 für einen älteren Empfänger, der stumm bleibt.",
+        "es": "Automático lee lo que anuncia cada altavoz. Fuerce AirPlay 1 para un receptor antiguo que se queda en silencio."
+      },
+      "required": false,
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": {
+            "en": "Automatic",
+            "fr": "Automatique",
+            "de": "Automatisch",
+            "es": "Automático"
+          }
+        },
+        {
+          "value": "airplay2",
+          "label": { "en": "AirPlay 2", "fr": "AirPlay 2", "de": "AirPlay 2", "es": "AirPlay 2" }
+        },
+        {
+          "value": "airplay1",
+          "label": {
+            "en": "AirPlay 1 (RAOP)",
+            "fr": "AirPlay 1 (RAOP)",
+            "de": "AirPlay 1 (RAOP)",
+            "es": "AirPlay 1 (RAOP)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "sender_name",
+      "type": "string",
+      "label": {
+        "en": "Sender name",
+        "fr": "Nom de l'émetteur",
+        "de": "Name des Senders",
+        "es": "Nombre del emisor"
+      },
+      "description": {
+        "en": "Name shown by the speakers that display who is playing.",
+        "fr": "Nom affiché par les enceintes qui indiquent qui diffuse.",
+        "de": "Name, den Lautsprecher anzeigen, die den Absender darstellen.",
+        "es": "Nombre que muestran los altavoces que indican quién reproduce."
+      },
+      "placeholder": { "en": "Gladys", "fr": "Gladys", "de": "Gladys", "es": "Gladys" },
+      "required": false,
+      "default": "Gladys"
+    },
+    {
+      "key": "airplay_password",
+      "type": "secret",
+      "label": {
+        "en": "AirPlay password",
+        "fr": "Mot de passe AirPlay",
+        "de": "AirPlay-Passwort",
+        "es": "Contraseña AirPlay"
+      },
+      "description": {
+        "en": "Only for speakers protected by a password (leave empty otherwise).",
+        "fr": "Uniquement pour les enceintes protégées par un mot de passe (sinon laissez vide).",
+        "de": "Nur für passwortgeschützte Lautsprecher (sonst leer lassen).",
+        "es": "Solo para altavoces protegidos con contraseña (si no, déjelo vacío)."
+      },
+      "required": false
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_speaker",
+      "label": {
+        "en": "Test a speaker",
+        "fr": "Tester une enceinte",
+        "de": "Lautsprecher testen",
+        "es": "Probar un altavoz"
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" },
+          "required": true
+        }
+      ]
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "speaker_offline",
+      "label": {
+        "en": "AirPlay speaker went offline",
+        "fr": "Enceinte AirPlay hors ligne",
+        "de": "AirPlay-Lautsprecher offline",
+        "es": "Altavoz AirPlay desconectado"
+      },
+      "description": {
+        "en": "A speaker stopped answering on the network (unplugged, Wi-Fi lost…).",
+        "fr": "Une enceinte ne répond plus sur le réseau (débranchée, Wi-Fi perdu…).",
+        "de": "Ein Lautsprecher antwortet nicht mehr im Netzwerk (ausgesteckt, WLAN verloren…).",
+        "es": "Un altavoz dejó de responder en la red (desenchufado, Wi-Fi perdido…)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Speaker name",
+            "fr": "Nom de l'enceinte",
+            "de": "Name des Lautsprechers",
+            "es": "Nombre del altavoz"
+          }
+        }
+      ]
+    },
+    {
+      "key": "speaker_online",
+      "label": {
+        "en": "AirPlay speaker back online",
+        "fr": "Enceinte AirPlay de retour en ligne",
+        "de": "AirPlay-Lautsprecher wieder online",
+        "es": "Altavoz AirPlay conectado de nuevo"
+      },
+      "description": {
+        "en": "A speaker that was offline answers on the network again.",
+        "fr": "Une enceinte hors ligne répond de nouveau sur le réseau.",
+        "de": "Ein Lautsprecher, der offline war, antwortet wieder im Netzwerk.",
+        "es": "Un altavoz que estaba desconectado vuelve a responder en la red."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Speaker name",
+            "fr": "Nom de l'enceinte",
+            "de": "Name des Lautsprechers",
+            "es": "Nombre del altavoz"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "play_audio",
+      "label": {
+        "en": "Play an audio URL on AirPlay",
+        "fr": "Jouer une URL audio sur AirPlay",
+        "de": "Audio-URL über AirPlay abspielen",
+        "es": "Reproducir una URL de audio en AirPlay"
+      },
+      "description": {
+        "en": "Plays a sound file or a stream (MP3, AAC, WAV, OGG…) from an http(s) URL.",
+        "fr": "Joue un fichier son ou un flux (MP3, AAC, WAV, OGG…) depuis une URL http(s).",
+        "de": "Spielt eine Audiodatei oder einen Stream (MP3, AAC, WAV, OGG…) von einer http(s)-URL ab.",
+        "es": "Reproduce un archivo de sonido o un flujo (MP3, AAC, WAV, OGG…) desde una URL http(s)."
+      },
+      "timeout_seconds": 120,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" },
+          "required": true
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Audio URL",
+            "fr": "URL audio",
+            "de": "Audio-URL",
+            "es": "URL de audio"
+          },
+          "placeholder": {
+            "en": "https://example.com/sound.mp3",
+            "fr": "https://exemple.fr/son.mp3",
+            "de": "https://beispiel.de/ton.mp3",
+            "es": "https://ejemplo.es/sonido.mp3"
+          },
+          "required": true
+        },
+        {
+          "key": "volume",
+          "type": "number",
+          "label": {
+            "en": "Volume (%, optional)",
+            "fr": "Volume (%, facultatif)",
+            "de": "Lautstärke (%, optional)",
+            "es": "Volumen (%, opcional)"
+          },
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "wait_until_finished",
+          "type": "boolean",
+          "label": {
+            "en": "Wait until the end (max. 100 s)",
+            "fr": "Attendre la fin (100 s max.)",
+            "de": "Bis zum Ende warten (max. 100 s)",
+            "es": "Esperar hasta el final (máx. 100 s)"
+          },
+          "default": false
+        }
+      ],
+      "outputs": [
+        {
+          "key": "played",
+          "type": "boolean",
+          "label": {
+            "en": "Playback started",
+            "fr": "Lecture démarrée",
+            "de": "Wiedergabe gestartet",
+            "es": "Reproducción iniciada"
+          }
+        },
+        {
+          "key": "duration_seconds",
+          "type": "number",
+          "label": {
+            "en": "Duration played (s)",
+            "fr": "Durée jouée (s)",
+            "de": "Gespielte Dauer (s)",
+            "es": "Duración reproducida (s)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "play_chime",
+      "label": {
+        "en": "Play a chime on AirPlay",
+        "fr": "Jouer un carillon sur AirPlay",
+        "de": "Gong über AirPlay abspielen",
+        "es": "Reproducir un timbre en AirPlay"
+      },
+      "description": {
+        "en": "A built-in sound that works without internet or text-to-speech: doorbell, notification, alert.",
+        "fr": "Un son intégré qui marche sans internet ni synthèse vocale : sonnette, notification, alerte.",
+        "de": "Ein eingebauter Ton, der ohne Internet und Sprachausgabe funktioniert: Türklingel, Hinweis, Alarm.",
+        "es": "Un sonido integrado que funciona sin internet ni síntesis de voz: timbre, aviso, alerta."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" },
+          "required": true
+        },
+        {
+          "key": "sound",
+          "type": "select",
+          "label": { "en": "Sound", "fr": "Son", "de": "Ton", "es": "Sonido" },
+          "default": "doorbell",
+          "options": [
+            {
+              "value": "doorbell",
+              "label": { "en": "Doorbell", "fr": "Sonnette", "de": "Türklingel", "es": "Timbre" }
+            },
+            {
+              "value": "notification",
+              "label": {
+                "en": "Notification",
+                "fr": "Notification",
+                "de": "Benachrichtigung",
+                "es": "Notificación"
+              }
+            },
+            {
+              "value": "alert",
+              "label": { "en": "Alert", "fr": "Alerte", "de": "Alarm", "es": "Alerta" }
+            }
+          ]
+        },
+        {
+          "key": "volume",
+          "type": "number",
+          "label": {
+            "en": "Volume (%, optional)",
+            "fr": "Volume (%, facultatif)",
+            "de": "Lautstärke (%, optional)",
+            "es": "Volumen (%, opcional)"
+          },
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "wait_until_finished",
+          "type": "boolean",
+          "label": {
+            "en": "Wait until the end",
+            "fr": "Attendre la fin",
+            "de": "Bis zum Ende warten",
+            "es": "Esperar hasta el final"
+          },
+          "default": false
+        }
+      ],
+      "outputs": [
+        {
+          "key": "played",
+          "type": "boolean",
+          "label": {
+            "en": "Playback started",
+            "fr": "Lecture démarrée",
+            "de": "Wiedergabe gestartet",
+            "es": "Reproducción iniciada"
+          }
+        },
+        {
+          "key": "duration_seconds",
+          "type": "number",
+          "label": {
+            "en": "Duration played (s)",
+            "fr": "Durée jouée (s)",
+            "de": "Gespielte Dauer (s)",
+            "es": "Duración reproducida (s)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stop_playback",
+      "label": {
+        "en": "Stop AirPlay playback",
+        "fr": "Arrêter la lecture AirPlay",
+        "de": "AirPlay-Wiedergabe stoppen",
+        "es": "Detener la reproducción AirPlay"
+      },
+      "description": {
+        "en": "Stops what Gladys is playing on a speaker.",
+        "fr": "Arrête ce que Gladys joue sur une enceinte.",
+        "de": "Stoppt, was Gladys auf einem Lautsprecher abspielt.",
+        "es": "Detiene lo que Gladys reproduce en un altavoz."
+      },
+      "timeout_seconds": 10,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Speaker", "fr": "Enceinte", "de": "Lautsprecher", "es": "Altavoz" },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "stopped",
+          "type": "boolean",
+          "label": {
+            "en": "A playback was stopped",
+            "fr": "Une lecture a été arrêtée",
+            "de": "Eine Wiedergabe wurde gestoppt",
+            "es": "Se detuvo una reproducción"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "airplay_speakers",
+      "label": {
+        "en": "AirPlay speakers",
+        "fr": "Enceintes AirPlay",
+        "de": "AirPlay-Lautsprecher",
+        "es": "Altavoces AirPlay"
+      },
+      "description": {
+        "en": "Reachability and playback of your speakers, or the controls of one of them.",
+        "fr": "Disponibilité et lecture de vos enceintes, ou les commandes de l'une d'elles.",
+        "de": "Erreichbarkeit und Wiedergabe Ihrer Lautsprecher oder die Steuerung eines davon.",
+        "es": "Disponibilidad y reproducción de sus altavoces, o los controles de uno de ellos."
+      },
+      "icon": "speaker",
+      "action_timeout_seconds": 20,
+      "settings": [
+        {
+          "key": "speaker",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Speaker (empty: all speakers)",
+            "fr": "Enceinte (vide : toutes)",
+            "de": "Lautsprecher (leer: alle)",
+            "es": "Altavoz (vacío: todos)"
+          },
+          "required": false
+        }
+      ]
+    }
+  ]
+}
