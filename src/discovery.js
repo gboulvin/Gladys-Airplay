@@ -7,9 +7,12 @@
 // and relays the raw records; this module interprets them:
 //   - `_airplay._tcp`: instance `Kitchen`, TXT `deviceid=AA:BB:…`,
 //     `features=0x…,0x…`, `model=…` (AirPlay 2 receivers, Apple TV, HomePod);
-//   - `_raop._tcp`: instance `AABBCCDDEEFF@Kitchen`, TXT `am=…` (the audio
-//     endpoint, AirPlay 1 receivers included).
-// A speaker announcing both is merged on its MAC address.
+//   - `_raop._tcp`: instance `AABBCCDDEEFF@Kitchen`, TXT `am=…`, `et=…` (the
+//     audio endpoint, AirPlay 1 receivers included).
+// A speaker announcing both is merged on its MAC address. The TXT entries the
+// sender needs to pick its lane (`features`, `model`, `et`) are kept, and
+// stored in the device params.
+
 // -----------------------------------------------------------------------------
 
 import {
@@ -18,6 +21,7 @@ import {
   DEVICE_FEATURE_UNITS,
   parseMdnsTxt,
 } from '@gladysassistant/integration-sdk';
+import { readCapabilities } from '@sonn-audio/node-airplay';
 import { PROTOCOLS } from './config.js';
 
 export const AIRPLAY_SERVICE = '_airplay._tcp';
@@ -43,14 +47,12 @@ export const PARAMS = {
   PORT: 'PORT',
   PROTOCOL: 'PROTOCOL',
   MODEL: 'MODEL',
+  FEATURES: 'FEATURES',
+  ENCRYPTION_TYPES: 'ENCRYPTION_TYPES',
 };
 
 // RAOP port of the receivers that announce none (AirPlay 1 default).
 const DEFAULT_RAOP_PORT = 5000;
-
-// Feature bit 38 of the AirPlay `features` TXT entry: "supports buffered
-// audio", the AirPlay 2 audio stack.
-const AIRPLAY_2_FEATURE_BIT = 38n;
 
 const IPV4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
 
@@ -69,18 +71,17 @@ export function normalizeMac(value) {
 
 /**
  * @description Whether the `features` TXT entry (`0xLOW,0xHIGH` or `0xVALUE`)
- * carries the AirPlay 2 buffered audio bit.
+ * announces AirPlay 2 (bit 38, unified media control, or bit 48, CoreUtils
+ * pairing — the library's own reading).
  * @param {unknown} features - Raw `features` TXT value.
- * @returns {boolean} True for an AirPlay 2 audio receiver.
+ * @returns {boolean} True for an AirPlay 2 receiver.
  */
 export function supportsAirplay2(features) {
   if (typeof features !== 'string') {
     return false;
   }
-  const [low, high = '0x0'] = features.split(',');
   try {
-    const value = (BigInt(high.trim()) << 32n) | BigInt(low.trim());
-    return ((value >> AIRPLAY_2_FEATURE_BIT) & 1n) === 1n;
+    return readCapabilities({ features }).supportsAirPlay2;
   } catch {
     return false;
   }
@@ -115,7 +116,8 @@ function instanceOf(name, service) {
  * @param {Array<{name: string, host: string|null, addresses: string[], port: number|null, txt: string[]}>} results
  * - Raw records relayed by the core.
  * @returns {Array<object>} Speakers, sorted by name: `{ id, name, address,
- * airplayPort, raopPort, airplay2, model, passwordRequired }`.
+ * airplayPort, raopPort, airplay2, model, features, encryptionTypes,
+ * passwordRequired }`.
  */
 export function parseScanResults(results) {
   const speakers = new Map();
@@ -155,6 +157,8 @@ export function parseScanResults(results) {
       raopPort: null,
       airplay2: false,
       model: null,
+      features: null,
+      encryptionTypes: null,
       passwordRequired: false,
     };
     speaker.address = address;
@@ -165,9 +169,14 @@ export function parseScanResults(results) {
       speaker.airplayPort = result.port ?? null;
       speaker.airplay2 = speaker.airplay2 || supportsAirplay2(txt.features);
       speaker.model = typeof txt.model === 'string' ? txt.model : speaker.model;
+      speaker.features = typeof txt.features === 'string' ? txt.features : speaker.features;
     } else {
       speaker.raopPort = result.port ?? null;
       speaker.model = speaker.model ?? (typeof txt.am === 'string' ? txt.am : null);
+      // `ft` is the RAOP spelling of `features`; `et` lists the encryption
+      // types, a `4` asking for the MFi exchange before the SETUP.
+      speaker.features = speaker.features ?? (typeof txt.ft === 'string' ? txt.ft : null);
+      speaker.encryptionTypes = typeof txt.et === 'string' ? txt.et : null;
     }
     speaker.passwordRequired =
       speaker.passwordRequired || txt.pw === 'true' || txt.pw === true || txt.pw === '1';
@@ -177,7 +186,8 @@ export function parseScanResults(results) {
 }
 
 /**
- * @description The protocol and port used to stream to a speaker.
+ * @description The protocol and port used to stream to a speaker (the
+ * sender reads the rest — model, features, et — from the speaker itself).
  * @param {object} speaker - Parsed speaker.
  * @param {string} protocol - Configured protocol (`auto`, `airplay2`, `airplay1`).
  * @returns {{ airplay2: boolean, port: number }} Connection settings.
@@ -213,6 +223,10 @@ export function buildDevice(gladys, speaker, config) {
       { name: PARAMS.PORT, value: String(port) },
       { name: PARAMS.PROTOCOL, value: airplay2 ? PROTOCOLS.AIRPLAY_2 : PROTOCOLS.AIRPLAY_1 },
       ...(speaker.model ? [{ name: PARAMS.MODEL, value: speaker.model }] : []),
+      ...(speaker.features ? [{ name: PARAMS.FEATURES, value: speaker.features }] : []),
+      ...(speaker.encryptionTypes
+        ? [{ name: PARAMS.ENCRYPTION_TYPES, value: speaker.encryptionTypes }]
+        : []),
     ],
     features: [
       {
@@ -283,7 +297,8 @@ export function speakerFromDevice(device, platformId) {
   if (!address || !Number.isInteger(port) || port <= 0) {
     return null;
   }
-  const airplay2 = params[PARAMS.PROTOCOL] === PROTOCOLS.AIRPLAY_2;
+  const airplay2 =
+    params[PARAMS.PROTOCOL] === PROTOCOLS.AIRPLAY_2 || supportsAirplay2(params[PARAMS.FEATURES]);
   return {
     id: platformId,
     name: device.name,
@@ -292,6 +307,8 @@ export function speakerFromDevice(device, platformId) {
     raopPort: airplay2 ? null : port,
     airplay2,
     model: params[PARAMS.MODEL] ?? null,
+    features: params[PARAMS.FEATURES] ?? null,
+    encryptionTypes: params[PARAMS.ENCRYPTION_TYPES] ?? null,
     passwordRequired: false,
   };
 }

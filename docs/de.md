@@ -132,23 +132,29 @@ Fügen Sie das Widget **AirPlay-Lautsprecher** hinzu:
 - Gladys streamt in einer eigenen AirPlay-Sitzung: Eine Wiedergabe
   unterbricht, was der Lautsprecher gerade spielte (Apple Music, Spotify…),
   und dies wird danach nicht fortgesetzt.
-- Die Integration läuft in einem Docker-Container. Manche AirPlay-2-Empfänger
-  müssen den Sender für ihre Uhrensynchronisation zurück erreichen: Wird ein
-  Lautsprecher gefunden und getestet, bleibt aber stumm, versuchen Sie
-  **AirPlay 1 (RAOP)** in der Konfiguration.
+- **HomePod und Apple TV** spielen nur AirPlay 2 (seit ihrem OS 27
+  akzeptieren sie eine AirPlay-1-Sitzung, bleiben aber stumm), und nur mit
+  einer **PTP-Uhr**, die Gladys auf den UDP-Ports 319 und 320 bereitstellt.
+  Die Integration läuft in einem Docker-Container in einem eigenen Netzwerk:
+  Erreicht der Lautsprecher diese Uhr nicht, akzeptiert er die Sitzung und
+  bleibt stumm, oder die Integration meldet, dass die PTP-Uhr nicht
+  bereitgestellt werden kann. AirPlay-2-Lautsprecher anderer Hersteller
+  weichen auf eine NTP-Uhr aus, AirPlay-1-Empfänger brauchen keine.
+- Das **AirPlay-Passwort** gilt nur für AirPlay-2-Lautsprecher.
 - Ein Apple TV oder HomePod mit „Nur Personen, die dieses Zuhause teilen“
   lehnt Gladys ab (siehe Voraussetzungen).
 
 ## Fehlerbehebung
 
-| Symptom                                       | Lösung                                                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Kein Lautsprecher im Tab Erkennung            | Prüfen Sie, ob der Lautsprecher eingeschaltet und im selben Netzwerk wie Gladys ist, und öffnen Sie den Tab erneut. |
-| „Der Lautsprecher antwortet nicht“            | Wecken Sie den Lautsprecher auf (Wiedergabe vom Telefon starten), prüfen Sie, ob sich seine IP geändert hat.        |
-| „Der Lautsprecher verlangt ein Passwort“      | Tragen Sie das AirPlay-Passwort in der Konfiguration ein.                                                           |
-| „Der Lautsprecher hat die Kopplung abgelehnt“ | Home-App > Zuhause-Einstellungen > Lautsprecher & TV > Zugriff für alle im selben Netzwerk erlauben.                |
-| Die Benachrichtigung läuft ohne Stimme        | Prüfen Sie die in Gladys gewählte Stimme (Einstellungen Künstliche Intelligenz) und ihr Abonnement.                 |
-| Der Testgong bleibt stumm                     | Stellen Sie das Protokoll auf **AirPlay 1 (RAOP)** oder **AirPlay 2** und testen Sie erneut.                        |
+| Symptom                                       | Lösung                                                                                                                                                         |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kein Lautsprecher im Tab Erkennung            | Prüfen Sie, ob der Lautsprecher eingeschaltet und im selben Netzwerk wie Gladys ist, und öffnen Sie den Tab erneut.                                            |
+| „Der Lautsprecher antwortet nicht“            | Wecken Sie den Lautsprecher auf (Wiedergabe vom Telefon starten), prüfen Sie, ob sich seine IP geändert hat.                                                   |
+| „Der Lautsprecher verlangt ein Passwort“      | Tragen Sie das AirPlay-Passwort in der Konfiguration ein.                                                                                                      |
+| „Der Lautsprecher hat die Kopplung abgelehnt“ | Home-App > Zuhause-Einstellungen > Lautsprecher & TV > Zugriff für alle im selben Netzwerk erlauben.                                                           |
+| Die Benachrichtigung läuft ohne Stimme        | Prüfen Sie die in Gladys gewählte Stimme (Einstellungen Künstliche Intelligenz) und ihr Abonnement.                                                            |
+| Der Testgong bleibt stumm                     | Lautsprecher anderer Hersteller: Protokoll auf **AirPlay 1 (RAOP)** oder **AirPlay 2** stellen und erneut testen. HomePod und Apple TV: siehe Einschränkungen. |
+| „braucht eine PTP-Uhr“                        | Die UDP-Ports 319/320 sind auf dem Gladys-Server belegt oder gesperrt: siehe Einschränkungen.                                                                  |
 
 Die Integration protokolliert jede Wiedergabe (Lautsprecher, Adresse,
 Protokoll, Fehlerursache) im Tab **Protokolle**.

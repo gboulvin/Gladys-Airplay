@@ -190,10 +190,10 @@
         "es": "Contraseña AirPlay"
       },
       "description": {
-        "en": "Only for speakers protected by a password (leave empty otherwise).",
-        "fr": "Uniquement pour les enceintes protégées par un mot de passe (sinon laissez vide).",
-        "de": "Nur für passwortgeschützte Lautsprecher (sonst leer lassen).",
-        "es": "Solo para altavoces protegidos con contraseña (si no, déjelo vacío)."
+        "en": "Only for AirPlay 2 speakers protected by a password (leave empty otherwise).",
+        "fr": "Uniquement pour les enceintes AirPlay 2 protégées par un mot de passe (sinon laissez vide).",
+        "de": "Nur für passwortgeschützte AirPlay-2-Lautsprecher (sonst leer lassen).",
+        "es": "Solo para altavoces AirPlay 2 protegidos con contraseña (si no, déjelo vacío)."
       },
       "required": false
     }

@@ -128,23 +128,29 @@ Ajoutez le widget **Enceintes AirPlay** :
   le volume avec une action **Contrôler un appareil**.
 - Gladys diffuse dans sa propre session AirPlay : une lecture interrompt ce
   que jouait l'enceinte (Apple Music, Spotify…), qui ne reprend pas ensuite.
-- L'intégration tourne dans un conteneur Docker. Certains récepteurs AirPlay
-  2 doivent joindre l'émetteur en retour pour synchroniser leur horloge : si
-  une enceinte est trouvée et testée mais reste muette, essayez **AirPlay 1
-  (RAOP)** dans la configuration.
+- **HomePod et Apple TV** ne jouent qu'en AirPlay 2 (depuis leur OS 27, ils
+  acceptent une session AirPlay 1 mais restent muets), et seulement avec une
+  **horloge PTP** servie par Gladys sur les ports UDP 319 et 320.
+  L'intégration tourne dans un conteneur Docker sur son propre réseau : si
+  l'enceinte ne peut pas joindre cette horloge, elle accepte la session et
+  reste muette, ou l'intégration signale que l'horloge PTP ne peut pas être
+  servie. Les enceintes AirPlay 2 tierces se rabattent sur une horloge NTP,
+  et les récepteurs AirPlay 1 n'en ont pas besoin.
+- Le **mot de passe AirPlay** ne concerne que les enceintes AirPlay 2.
 - Un Apple TV ou un HomePod réglé sur « Seulement les personnes qui partagent
   ce domicile » refuse Gladys (voir les prérequis).
 
 ## Dépannage
 
-| Symptôme                                 | Que faire                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Aucune enceinte dans l'onglet Découverte | Vérifiez que l'enceinte est allumée et sur le même réseau que Gladys, puis rouvrez l'onglet.                  |
-| « L'enceinte ne répond pas »             | Réveillez l'enceinte (lancez une lecture depuis votre téléphone), vérifiez que son adresse IP n'a pas changé. |
-| « L'enceinte demande un mot de passe »   | Saisissez le mot de passe AirPlay dans la configuration.                                                      |
-| « L'enceinte a refusé l'appairage »      | App Maison > Réglages de la maison > Enceintes et TV > autorisez tout le monde sur le même réseau.            |
-| La notification est jouée sans voix      | Vérifiez la voix choisie dans Gladys (réglages Intelligence artificielle) et son abonnement.                  |
-| Le carillon de test reste muet           | Réglez le protocole sur **AirPlay 1 (RAOP)**, ou **AirPlay 2**, et testez à nouveau.                          |
+| Symptôme                                 | Que faire                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aucune enceinte dans l'onglet Découverte | Vérifiez que l'enceinte est allumée et sur le même réseau que Gladys, puis rouvrez l'onglet.                                                   |
+| « L'enceinte ne répond pas »             | Réveillez l'enceinte (lancez une lecture depuis votre téléphone), vérifiez que son adresse IP n'a pas changé.                                  |
+| « L'enceinte demande un mot de passe »   | Saisissez le mot de passe AirPlay dans la configuration.                                                                                       |
+| « L'enceinte a refusé l'appairage »      | App Maison > Réglages de la maison > Enceintes et TV > autorisez tout le monde sur le même réseau.                                             |
+| La notification est jouée sans voix      | Vérifiez la voix choisie dans Gladys (réglages Intelligence artificielle) et son abonnement.                                                   |
+| Le carillon de test reste muet           | Enceinte tierce : réglez le protocole sur **AirPlay 1 (RAOP)**, ou **AirPlay 2**, et testez à nouveau. HomePod et Apple TV : voir les limites. |
+| « exige une horloge PTP »                | Les ports UDP 319/320 sont occupés ou interdits sur le serveur Gladys : voir les limites.                                                      |
 
 L'intégration journalise chaque lecture (enceinte, adresse, protocole, cause
 d'un échec) dans son onglet **Journaux**.

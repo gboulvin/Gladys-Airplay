@@ -95,7 +95,8 @@ export function createAirplayService(gladys, deps = {}) {
    * @description Where and how to reach a speaker: the last scan wins (a
    * DHCP lease may have moved it), the params stored by Gladys otherwise.
    * @param {string} externalId - Device external id.
-   * @returns {object} `{ externalId, name, address, port, airplay2 }`.
+   * @returns {object} `{ externalId, name, address, port, airplay2, model,
+   * features, encryptionTypes }`.
    */
   function resolveTarget(externalId) {
     const platformId = platformIdOf(externalId);
@@ -114,6 +115,10 @@ export function createAirplayService(gladys, deps = {}) {
       address: speaker.address,
       port,
       airplay2,
+      // What the sender picks its lane on (src/airplay.js).
+      model: speaker.model,
+      features: speaker.features,
+      encryptionTypes: speaker.encryptionTypes,
     };
   }
 

@@ -167,3 +167,33 @@ test('a playback is cut at the maximum duration', async (t) => {
   t.mock.timers.tick(30_000);
   assert.equal((await finished).reason, 'max_duration');
 });
+
+test('the sender reasons reach the caller as playback errors', async () => {
+  for (const [answer, code] of [
+    ['unreachable', 'UNREACHABLE'],
+    ['ptp_unavailable', 'PTP_UNAVAILABLE'],
+    ['pair_failed', 'PAIRING_FAILED'],
+  ]) {
+    const { startSender } = createFakeSenders({ answer });
+    const player = createPlaybackManager({ startSender });
+    const { started } = player.play(target, { pcm: Buffer.alloc(100) }, options);
+    await assert.rejects(started, (err) => err.code === code, answer);
+  }
+});
+
+test('the sender gets what it picks its lane on', async () => {
+  const { startSender, senders } = createFakeSenders();
+  const player = createPlaybackManager({ startSender });
+  const { started } = player.play(
+    { ...target, model: 'AudioAccessory5,1', features: '0x0,0x240', encryptionTypes: '0,3,5' },
+    { pcm: Buffer.alloc(100) },
+    { ...options, password: 'secret' },
+  );
+  await started;
+  assert.equal(senders[0].options.model, 'AudioAccessory5,1');
+  assert.equal(senders[0].options.features, '0x0,0x240');
+  assert.equal(senders[0].options.encryptionTypes, '0,3,5');
+  assert.equal(senders[0].options.title, 'Test');
+  assert.equal(senders[0].options.password, 'secret');
+  player.stopAll();
+});

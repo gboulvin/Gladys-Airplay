@@ -144,6 +144,15 @@ test('"Test a speaker" plays the chime and says so', async (t) => {
   assert.equal(Object.keys(ack.data.message).length, 4);
 });
 
+test('"Test a speaker" explains an Apple speaker the PTP clock cannot reach', async (t) => {
+  const { gladys, senders } = await setup(t, { answer: 'ptp_unavailable' });
+  const ack = await gladys.fake.action('test_speaker', { device: KITCHEN });
+  assert.match(ack.data.message.en, /PTP/);
+  // The HomePod of the fixtures, with what its lane is picked on.
+  assert.equal(senders[0].options.model, 'AudioAccessory5,1');
+  assert.equal(senders[0].options.features, '0x4A7FDFD5,0xBC177FDE');
+});
+
 test('"Test a speaker" explains a password-protected speaker', async (t) => {
   const { gladys } = await setup(t, { answer: 'need_password' });
   const ack = await gladys.fake.action('test_speaker', { device: KITCHEN });
