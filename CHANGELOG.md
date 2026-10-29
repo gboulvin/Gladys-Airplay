@@ -16,10 +16,6 @@ the notes of the version's GitHub Release.
   `_raop._tcp`), one device per speaker keyed by its MAC address.
 - Voice notifications on AirPlay and AirPlay 2 speakers through the core
   **Play a notification** scene action, replacing the built-in AirPlay service.
-- AirPlay sessions with `@sonn-audio/node-airplay`: AirPlay 1 (RAOP, with the
-  MFi exchange), AirPlay 2 timed by PTP for HomePod and Apple TV, AirPlay 2
-  timed by NTP for the other receivers, chosen per speaker from its mDNS
-  records.
 - A volume per speaker, stored by the integration and applied live during a
   playback, with a configurable default volume.
 - Playback state and "now playing" title of each speaker.
@@ -32,5 +28,19 @@ the notes of the version's GitHub Release.
 - **Test a speaker** button in the Configuration screen.
 - Per-device `local` / `unreachable` transport badge.
 - English, French, German and Spanish texts and documentation.
+
+### Changed
+
+- AirPlay sessions use `@sonn-audio/node-airplay`, the maintained successor of
+  the archived `@lox-audioserver/node-airplay-sender`. The lane is chosen per
+  speaker from its mDNS records: AirPlay 2 timed by PTP for HomePod and Apple
+  TV (they play nothing over AirPlay 1 since OS 27), AirPlay 2 timed by NTP for
+  the other receivers, AirPlay 1 (RAOP, with the MFi exchange) for the older
+  ones.
+- An Apple speaker that cannot get its PTP clock (UDP ports 319/320) now
+  reports it instead of playing silence.
+- The AirPlay password only applies to AirPlay 2 speakers.
+- License: Apache-2.0, like the official template (was AGPL-3.0-or-later,
+  required by the previous AirPlay library).
 
 [Unreleased]: https://github.com/gboulvin/Gladys-Airplay/commits/main
