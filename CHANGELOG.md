@@ -43,4 +43,11 @@ the notes of the version's GitHub Release.
 - License: Apache-2.0, like the official template (was AGPL-3.0-or-later,
   required by the previous AirPlay library).
 
+### Fixed
+
+- A speaker sending a malformed answer no longer stops the whole integration:
+  the error raised inside the AirPlay library ends the playbacks only, and the
+  test or scene reports the failure. Any other unexpected error still restarts
+  the integration, as do repeated library failures (more than 5 in a minute).
+
 [Unreleased]: https://github.com/gboulvin/Gladys-Airplay/commits/main

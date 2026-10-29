@@ -9,9 +9,15 @@
 
 import { GladysIntegration, logger } from '@gladysassistant/integration-sdk';
 import { registerHandlers } from './src/app.js';
+import { installCrashGuard } from './src/guard.js';
 
 const gladys = new GladysIntegration();
 const app = registerHandlers(gladys);
+
+// A speaker answering garbage must not stop the integration: an error the
+// AirPlay library throws from its socket handlers ends the playbacks only
+// (see src/guard.js). Any other uncaught error still exits.
+installCrashGuard({ onRecover: () => app.stopPlaybacks() });
 
 // The SDK disconnects cleanly and exits with code 0 when the supervisor stops
 // the container (SIGTERM/SIGINT): stop the AirPlay sessions first, so the

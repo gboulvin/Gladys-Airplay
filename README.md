@@ -92,23 +92,24 @@ npm run lint          # ESLint
 npm run format:check  # Prettier
 ```
 
-| Path                       | Role                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------ |
-| `index.js`                 | Bootstrap: creates the SDK client, registers the handlers, connects.           |
-| `src/app.js`               | SDK wiring: discovery, set value, actions, scenes, widget, lifecycle.          |
-| `src/service.js`           | Speakers, playback, volumes and reachability shared by every handler.          |
-| `src/discovery.js`         | mDNS records → speakers → Gladys devices.                                      |
-| `src/player.js`            | Playbacks: ffmpeg or in-memory source, pacing, timeouts, errors.               |
-| `src/airplay.js`           | AirPlay sender: lane choice (RAOP, AirPlay 2 PTP/NTP), packets, teardown.      |
-| `src/availability.js`      | TCP reachability probe, transport badges, offline/online triggers.             |
-| `src/scenes.js`            | Scene actions `play_audio`, `play_chime`, `stop_playback`.                     |
-| `src/widgets.js`           | Dashboard widget `airplay_speakers`.                                           |
-| `src/sounds.js`            | Built-in chimes (PCM synthesis).                                               |
-| `src/store.js`             | Volumes persisted under `/data`.                                               |
-| `src/i18n.js`              | Languages and runtime messages (en, fr, de, es).                               |
-| `src/config.js`            | Defaults (mirror the manifest) and normalization.                              |
-| `docs/<en\|fr\|de\|es>.md` | User documentation, re-hosted by Gladys.                                       |
-| `test/`                    | Unit and end-to-end tests: fake Gladys, fake senders, fake ffmpeg, no network. |
+| Path                       | Role                                                                              |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `index.js`                 | Bootstrap: creates the SDK client, registers the handlers, connects.              |
+| `src/app.js`               | SDK wiring: discovery, set value, actions, scenes, widget, lifecycle.             |
+| `src/service.js`           | Speakers, playback, volumes and reachability shared by every handler.             |
+| `src/discovery.js`         | mDNS records → speakers → Gladys devices.                                         |
+| `src/player.js`            | Playbacks: ffmpeg or in-memory source, pacing, timeouts, errors.                  |
+| `src/airplay.js`           | AirPlay sender: lane choice (RAOP, AirPlay 2 PTP/NTP), packets, teardown.         |
+| `src/guard.js`             | Crash guard: an error thrown inside the AirPlay library stops the playbacks only. |
+| `src/availability.js`      | TCP reachability probe, transport badges, offline/online triggers.                |
+| `src/scenes.js`            | Scene actions `play_audio`, `play_chime`, `stop_playback`.                        |
+| `src/widgets.js`           | Dashboard widget `airplay_speakers`.                                              |
+| `src/sounds.js`            | Built-in chimes (PCM synthesis).                                                  |
+| `src/store.js`             | Volumes persisted under `/data`.                                                  |
+| `src/i18n.js`              | Languages and runtime messages (en, fr, de, es).                                  |
+| `src/config.js`            | Defaults (mirror the manifest) and normalization.                                 |
+| `docs/<en\|fr\|de\|es>.md` | User documentation, re-hosted by Gladys.                                          |
+| `test/`                    | Unit and end-to-end tests: fake Gladys, fake senders, fake ffmpeg, no network.    |
 
 Run it against a Gladys instance in developer mode:
 

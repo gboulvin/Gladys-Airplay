@@ -24,7 +24,8 @@ export const ACTIONS = { TEST_SPEAKER: 'test_speaker' };
  * @param {object} gladys - SDK client (or the SDK's fake Gladys).
  * @param {object} [deps] - Injected dependencies (tests): startSender, spawn,
  * probe, dataDir.
- * @returns {{ service: object, stop: Function }} The service, and a cleanup.
+ * @returns {{ service: object, stopPlaybacks: Function, stop: Function }} The
+ * service, a way to stop the playbacks only, and a full cleanup.
  */
 export function registerHandlers(gladys, deps = {}) {
   let availabilityTimer = null;
@@ -177,6 +178,10 @@ export function registerHandlers(gladys, deps = {}) {
 
   return {
     service,
+    // Stop every AirPlay session, keep the integration running (crash guard).
+    stopPlaybacks() {
+      service.stopAll();
+    },
     stop() {
       stopAvailabilityTimer();
       service.stopAll();

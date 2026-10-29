@@ -41,6 +41,7 @@ src/service.js                    shared state: scanned speakers, player, volume
 src/discovery.js                  mDNS records -> speakers -> device payload (external ids, features, params)
 src/player.js                     one playback per speaker; ffmpeg (URL) or in-memory PCM source, pacing
 src/airplay.js                    AirPlay sender: lane (RAOP, AirPlay 2 PTP/NTP), shared PTP engine, packets
+src/guard.js                      crash guard: library errors stop the playbacks, any other error exits
 src/availability.js               TCP probe, transport badges, speaker_offline/speaker_online triggers
 src/scenes.js                     scene actions (manifest `scene_actions`)
 src/widgets.js                    dashboard widget (manifest `widgets`)
@@ -70,6 +71,9 @@ test/                             node --test; fake Gladys (SDK), fake senders/f
   2 on PTP: never route them to NTP or RAOP, report `PTP_UNAVAILABLE`
   instead. One PTP engine per process (UDP 319/320 bind once), one sender
   identity. The library is pre-1.0: keep its use inside `src/airplay.js`.
+  It throws from its socket handlers on a malformed answer: `src/guard.js`
+  recovers those (by stack) and only those; never widen it to swallow every
+  uncaught error.
 - **Acks are short.** A set-value is acked under 5 s: validate the URL and
   resolve the speaker synchronously, stream in the background. Scene actions
   and widget actions must resolve before their declared timeout
