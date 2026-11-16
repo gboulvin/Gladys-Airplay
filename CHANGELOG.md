@@ -10,6 +10,10 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Fixed
+
+- `@sonn-audio/node-airplay` 0.1.3: a receiver reply that arrives after its request timed out no longer shifts every reply after it, and an AirPlay 1 receiver gets one request at a time.
+
 ## [2.0.0] - 2026-10-29
 
 ### Added
