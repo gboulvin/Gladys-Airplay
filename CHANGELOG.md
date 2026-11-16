@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-16
+
 ### Fixed
 
 - `@sonn-audio/node-airplay` 0.1.3: a receiver reply that arrives after its request timed out no longer shifts every reply after it, and an AirPlay 1 receiver gets one request at a time.
@@ -56,5 +58,6 @@ the notes of the version's GitHub Release.
   test or scene reports the failure. Any other unexpected error still restarts
   the integration, as do repeated library failures (more than 5 in a minute).
 
-[Unreleased]: https://github.com/gboulvin/Gladys-Airplay/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/gboulvin/Gladys-Airplay/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/gboulvin/Gladys-Airplay/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/gboulvin/Gladys-Airplay/releases/tag/v2.0.0
